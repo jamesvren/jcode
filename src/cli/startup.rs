@@ -46,6 +46,10 @@ pub async fn run() -> Result<()> {
     crate::config::on_config_reloaded(crate::auth::AuthStatus::invalidate_cache);
     crate::config::on_config_reloaded(|| crate::bus::Bus::global().publish_models_updated());
 
+    let allow_insecure_http = crate::provider_catalog::allow_insecure_http();
+    if !allow_insecure_http.is_empty() {
+        crate::env::set_var("JCODE_ALLOW_INSECURE_HTTP", allow_insecure_http);
+    }
     // Invert the legacy provider_catalog -> auth dependency: provider_catalog
     // consults registered fallback resolvers, and auth (the higher layer)
     // registers its external-CLI credential scan here.

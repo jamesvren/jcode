@@ -268,6 +268,14 @@ pub fn normalize_api_base(raw: &str) -> Option<String> {
 }
 
 fn allows_insecure_http_host(host: &str) -> bool {
+    let allowed: bool = std::env::var("JCODE_ALLOW_INSECURE_HTTP")
+        .unwrap_or_default()
+        .parse()
+        .unwrap_or_default();
+    if allowed {
+        return true;
+    }
+
     let host = host.trim();
     let host = host
         .strip_prefix('[')

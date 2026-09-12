@@ -24,6 +24,10 @@ pub fn api_base_uses_localhost(raw: &str) -> bool {
     )
 }
 
+pub fn allow_insecure_http() -> String {
+    env_override("JCODE_ALLOW_INSECURE_HTTP").unwrap_or_default()
+}
+
 pub fn resolve_openai_compatible_profile(
     profile: OpenAiCompatibleProfile,
 ) -> ResolvedOpenAiCompatibleProfile {

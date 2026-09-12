@@ -803,6 +803,14 @@ fn login_openai_compatible_flow(
                 crate::provider_catalog::OPENAI_COMPAT_PROFILE.env_file,
                 Some(&normalized),
             )?;
+            let allowed = crate::provider_catalog::allow_insecure_http();
+            if !allowed.is_empty() {
+                crate::provider_catalog::save_env_value_to_env_file(
+                    "JCODE_ALLOW_INSECURE_HTTP",
+                    crate::provider_catalog::OPENAI_COMPAT_PROFILE.env_file,
+                    Some(&allowed),
+                )?;
+            }
             resolved = resolve_openai_compatible_profile(*profile);
         }
 
