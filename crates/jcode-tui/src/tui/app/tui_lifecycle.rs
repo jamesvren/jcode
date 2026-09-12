@@ -730,6 +730,8 @@ impl App {
             streaming_md_renderer: RefCell::new(IncrementalMarkdownRenderer::new(None)),
             ambient_system_prompt: None,
             pending_login: None,
+            remote_login: None,
+            remote_login_onboarding: Default::default(),
             pending_account_input: None,
             pending_ssh_remote_name: None,
             force_full_redraw: false,
@@ -1179,6 +1181,8 @@ impl App {
             streaming_md_renderer: RefCell::new(IncrementalMarkdownRenderer::new(None)),
             ambient_system_prompt: None,
             pending_login: None,
+            remote_login: None,
+            remote_login_onboarding: Default::default(),
             pending_account_input: None,
             pending_ssh_remote_name: None,
             force_full_redraw: false,
@@ -1328,6 +1332,7 @@ impl App {
         let registry = Registry::empty();
         let session = resume_session
             .as_ref()
+            .filter(|_| !crate::tui::is_ssh_remote())
             .and_then(|session_id| Session::load_startup_stub(session_id).ok())
             .unwrap_or_else(|| Session::create(None, None));
         let mut app = Self::new_minimal_with_session(provider, registry, session);
@@ -1335,6 +1340,17 @@ impl App {
         app.runtime_mode = AppRuntimeMode::RemoteClient;
         app.remote_startup_phase = Some(super::RemoteStartupPhase::Connecting);
         app.remote_startup_phase_started = Some(Instant::now());
+
+        if let Some(host) = crate::tui::ssh_remote_host() {
+            // The server supplies history, credentials, models and project state.
+            // Local reload files can belong to an unrelated session with the same id.
+            app.onboarding_startup_checked = true;
+            app.auto_server_reload = false;
+            app.session.working_dir = None;
+            app.resume_session_id = resume_session;
+            app.set_status_notice(format!("SSH: {host} (remote server)"));
+            return app;
+        }
 
         let reload_fast_start = std::env::var("JCODE_RELOAD_FAST_START")
             .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
